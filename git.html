@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Title</title>
+    <meta charset="utf-8">
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+    body {
+      font-family: 'Droid Serif';
+      font-size-adjust: 0.95;
+    }
+    h1, h2, h3 {
+      font-family: 'Yanone Kaffeesatz';
+      font-weight: normal;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1 {
+        color: #E76F0E;
+    }
+    h2,
+    h3 {
+        color: #A1BFCA
+    }
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+
+layout: true
+
+class: centre, middle
+
+---
+
+# Git
+
+---
+![endofunctors](./endofunctors.png)
+---
+
+# Git basics and vocabulary
+
+---
+
+- **diff**: the difference between 2 files
+- **commit**: a set of diffs
+- **branch**: a sequence of commits
+- **repo**: a set of branches
+
+---
+
+- **diff**: the difference between 2 files
+- **commit**:
+  - a set of diffs
+  - *metadata*:
+    - the commit message
+    - the author name and email
+    - the commit's parent
+- **branch**:
+  - a sequence of commits
+  - not necessarly just a straight sequence
+- **repo**: a set of branches
+
+
+---
+
+# other important concepts
+
+---
+
+In your local repo
+
+- **staging**: the things that will get added in the next commit
+- **remote**: a remote repo. You can add more than one
+
+---
+# Collaboration models
+
+---
+
+The __"Github"__ model
+
+Commonly used in public github projects.
+
+Mostly interesting as a method of access control: allows you to easily accept code from untrusted sources.
+
+- my local repo
+- my remote repo
+- the central remote repo
+
+When your branch is ready:
+
+- push from your local repo to *your* remote repo
+- make a PR from *your* remote to the public remote
+---
+
+![trinity](./holy_trinity_model.jpg)
+---
+
+The __"Trust everyone"__ model
+
+Trust everyone. Simpler. More likely to be used if using git at a company.
+
+- my local repo
+- the central remote repo
+---
+
+![shared](./shared_central_repo_model.jpg "shared")
+---
+
+# Day to Day Git
+
+---
+
+## Note: this is what I consider best practice. Opinions may vary.
+
+---
+
+# Starting
+
+new local repo:
+
+```bash
+git init
+```
+
+clone a remote repo:
+
+```bash
+git clone https://github.com/robot/robot-framework.git
+```
+
+---
+
+Create a branch to work in:
+
+```bash
+git checkout -b sampti_fix_input_text_xpath origin/master
+```
+
+---
+
+# "What is currently happening" comands
+---
+
+```bash
+git status
+```
+
+ - what is the state of my local repo
+ - what will go into the next commit ("staged")
+ - what file are changed but will not go into the next commit
+ - what files are new (and not gitignored)
+---
+```bash
+git branch
+```
+
+- what branch am I on
+- what other branches are in my local repo
+---
+```bash
+git log
+```
+
+- what has happened so far on this branch
+- what branch is this branch based on
+
+---
+
+# Commiting changes
+
+1. edit
+2. `git add`
+3. `git commit`
+4. goto 1
+
+---
+# Pro-tip: just take **parts** of a file
+---
+Many git commands that accept files, also take a "-p" flag.
+
+"-p" = don't add the whole file, but instead, interactively let me choose which parts of the file are added
+
+1. edit
+    1. `git add -p`
+    2. `git commit`
+    3.  repeat as needed
+2. goto 1
+
+---
+
+# Undoing work that something you didn't mean to change
+
+---
+
+# Undoing a something from the filesystem
+
+```bash
+git checkout -- [filepath]
+```
+
+reset the currently unstaged file to the state is in the most recent commit
+
+that change is still (probably) on disk.
+---
+*better version:*
+
+```bash
+git checkout -p```
+
+---
+
+# Undoing a staged change
+
+```bash
+git reset HEAD -- [filepath]
+```
+
+"unstage" the changes for the file
+
+i.e. the changes are still there, they just won't go into the next commit
+---
+```bash
+git reset -p
+```
+
+= ask me diff by diff
+
+---
+
+# pushing changes "upstream"
+
+note: "HEAD"=branch that I'm currently on
+
+```bash
+git push origin HEAD```
+---
+or, push local branch `test_improvements_bugfix` to remote `test_improvements`
+
+```bash
+git push origin test_improvement_bugfix:test_improvements```
+---
+or overwrite the remote `test_improvements` with local `test_improvements`
+
+```bash
+git push -f origin test_improvements```
+
+---
+
+# Get upstream changes from repo
+
+Get all the changes on all branches from the repo origin
+
+```bash
+git fetch origin```
+
+---
+
+# Getting remote changes into your branch
+---
+
+## Rebase vs Merge
+
+---
+
+![yoda](./yoda.jpg)
+---
+TL/DR: just rebase
+
+---
+
+Longer answer: rebase except in some circumstances
+
+---
+
+what are rebase and merge?
+
+---
+
+# rebase
+
+```bash
+git fetch origin
+git rebase origin/master
+```
+---
+basically:
+give me a branch with my local work ontop of the latest version of origin/master
+---
+Roughly what happens:
+- create a new branch from origin/master
+- apply my local work (i.e. the new commits) from my local branch ontop of that
+- clobber my old local branch with this new branch
+---
+the old branch and the new branch cannot be connected anymore
+- makes it look like your starting point was origin/master as it currently is
+- history has changed
+- when you push it needs to be a force push
+
+---
+
+# Why is rebase better?
+
+it leaves the history cleaner. That makes:
+
+- code review
+- future debugging of when-was-this-bug-introduced
+
+**much** simpler
+
+---
+Note: I'd say most people agree with me, but there are some heretics that don't
+
+Follow the rules of the project you're in. Ask if you're unsure
+
+---
+
+# When to not rebase
+
+Rebasing rewrites git history i.e. it "destroys" the old branch.
+
+Therefore others working in the same branch can no longer connect their changes into your shared branch anymore.
+
+Basically, any time you do a "force push" you screw over anyone who is working in the same remote branch as you
+---
+However:
+
+Having multiple people working in feature branches is not a good idea.
+
+Basically: one author per branch
+
+(note: never push directly to master, especially force push)
+
+---
+
+# Merge
+
+- Doesn't rewrite history
+- Does leave history looking like a mess
+- Makes git bisecting/finding bugs later painful
+- "time flows forwards and backwards"
+
+---
+
+# Interactive rebasing
+
+---
+
+## "make me look like I never make mistakes"
+
+---
+
+# history is not immutable in git
+---
+you can (and in certain cases **should**) change (**private**) history
+
+might sound a little odd if you're used to other source control systems
+
+---
+
+## Changing *private* history let's you make your changes much more understandable
+
+---
+
+##It decouples the "learning" part of coding from the "telling a story" part.
+
+The _story_ is much easier to read if is linear and nicely organised
+---
+Usually you don't necessarily know exactly what needs to be done when you start a coding task.
+
+Git lets you:
+
+1. figure it all out/get it working
+1. split and rearrange the necessary changes so that history reads like you knew exactly what you were doing right from the start
+1. remove any "fix bug I made earlier" commits
+
+---
+
+You can and should do this.
+
+- makes it much nicer to review if commits are small and logically self-contained
+- makes it much nicer if you need to go back and figure out why/when something broke
+
+*important note* you can't do this if anyone else is sharing your branch
+
+---
+
+If you just want to change the most recent commit i.e. "damn, I forgot to add that file" (or whatever):
+
+```bash
+git add blah.py
+git commit --amend
+```
+
+---
+
+changing older commits:
+
+```bash
+git add blah.py
+git commit --fixup=commit_hash_of_commit_you_want_to_fix
+[git stash]
+git rebase --interactive --autosquash origin/master
+edit git log
+[git stash pop]
+```
+
+---
+
+# Git stash
+
+- `git stash`: move changes away for a bit (kinda like an anonymous branch)
+- `git stash pop`: bring them back
+
+---
+# Workflows
+---
+# Basic workflow
+
+1. get new code from the server
+2. create a branch for your work
+3. edit/add/commit loop
+4. publish changes
+5. create pull request
+6. verify that tests pass
+7. get approval from a colleague
+8. merge
+9. goto 1
+---
+# More advanced workflow
+---
+1. get new code from the server
+2. create a branch for your work
+3. edit/add/commit loop
+4. cleanup up branch history via interactive rebasing
+4. publish changes
+5. create pull request
+6. verify that tests pass
+7. get approval from a colleague
+    1. fix comments from colleague
+    2. cleanup branch history
+    3. force push new changes
+    4. verify that CI tests pass
+8. merge
+9. goto 1
+---
+
+# Tools
+
+---
+
+# GUI tools
+
+---
+
+**mac**: gitup (pretty nice)
+
+**others**: gitkraken (never used but heard it's nice)
+
+---
+
+# Command line tools
+
+---
+
+- tig
+- git config
+- shell (bash, zsh, whatever) config to show branch and repo state in prompt
+
+---
+
+# Git config
+
+---
+
+You can make the bare git client much nicer with some configuration
+
+---
+```
+[color]
+ui = auto
+[color "branch"]
+current = red
+local = yellow
+remote = green
+[color "diff"]
+meta = cyan
+frag = magenta
+old = red
+new = green
+whitespace = red reverse
+[color "status"]
+untracked = cyan
+```
+---
+```
+[alias]
+br = branch
+hist = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(b
+    old blue)<%an>%Creset' --abbrev-commit
+irebase = rebase -i --autosquash
+branchbydate = for-each-ref --sort=-committerdate refs/heads/
+authorslist = shortlog -sn --no-merges
+[core]
+excludesfile = ~/.gitignore
+trustctime = false
+```
+---
+```
+ ________
+< thanks >
+ --------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+```
+</textarea>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js">
+</script>
+<script>
+var slideshow = remark.create({
+    ratio: '16:9',
+    slideNumberFormat: function(current, total) {
+        return '';
+    }
+});
+</script>
+</body>
+</html>
